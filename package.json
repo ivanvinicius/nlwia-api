@@ -15,6 +15,7 @@
     "prisma-init": "prisma init --datasource-provider sqlite"
   },
   "dependencies": {
+    "@fastify/multipart": "^7.7.3",
     "@prisma/client": "5.2.0",
     "fastify": "^4.23.0",
     "prisma": "^5.2.0"
