@@ -10,7 +10,7 @@ import { prisma } from '../lib/prisma'
 
 const pipe = promisify(pipeline)
 
-export async function uploadVideo(app: FastifyInstance) {
+export async function uploadVideoRoute(app: FastifyInstance) {
   app.register(fastifyMultipart, {
     limits: {
       fileSize: 1_048_576 * 25, // 25mb
