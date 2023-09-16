@@ -18,5 +18,5 @@ model Video {
 model Prompt {
   id       String @id @default(uuid())
   title    String
-  template String
+  template String //é o texto de pergunta enviado para a openAI
 }

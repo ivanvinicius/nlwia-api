@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { OpenAIStream, streamToResponse } from 'ai'
 import { z } from 'zod'
 
 import { prisma } from '../lib/prisma'
@@ -6,13 +7,17 @@ import { openai } from '../lib/openai'
 
 const bodySchema = z.object({
   videoId: z.string().uuid(),
-  template: z.string(),
+  prompt: z.string(),
   temperature: z.number().min(0).max(1).default(0.5),
 })
 
+/**
+ * Gera a transcrição dos vídeos, através do prompt informado no front-end
+ * @param app
+ */
 export async function generateIACompletionRoute(app: FastifyInstance) {
   app.post('/ai/complete', async (req, res) => {
-    const { videoId, template, temperature } = bodySchema.parse(req.body)
+    const { videoId, prompt, temperature } = bodySchema.parse(req.body)
 
     const video = await prisma.video.findUniqueOrThrow({
       where: { id: videoId },
@@ -24,25 +29,34 @@ export async function generateIACompletionRoute(app: FastifyInstance) {
         .send({ error: 'Video transcription was not generated yet' })
     }
 
-    const promptMessage = template.replace(
-      '{transcription}',
-      video.transcription,
-    )
+    const promptMessage = prompt.replace('{transcription}', video.transcription)
 
     /**
      * Dependendo do tamanho da transcrição é possível mudar os modelos da openAI
      * Existe um site chamado Tokenizer para verificar essa questão, lá é possível
      * ver quantos tokens a requisação vai precisar. Lembrando, req e res somados.
      * */
-
     try {
       const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo-16k',
         temperature,
         messages: [{ role: 'user', content: promptMessage }],
+        stream: true,
       })
 
-      return res.status(200).send({ response })
+      const stream = OpenAIStream(response)
+
+      /**
+       * Permite que uma resposta no formate de strem seja formda. É necessário
+       * configurar o CORS seperadamente, bem como passar o módulo raiz de respostas
+       * do NODEJS, que é o res.raw
+       */
+      streamToResponse(stream, res.raw, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST',
+        },
+      })
     } catch {
       return res
         .status(500)

@@ -8,8 +8,18 @@ import { fastifyMultipart } from '@fastify/multipart'
 
 import { prisma } from '../lib/prisma'
 
+/**
+ * É necessário usar o promisify para converter funções do NodeJS que ainda não
+ * usam o padrão de promises ou seja, callback functions
+ */
 const pipe = promisify(pipeline)
 
+/**
+ * Realiza o upload dos vídeos para o disco. Lembrando que, o arquivo presente aqui
+ * na verdade é o áudio extraído do vídeo, dessa maneira conseguimos reduzir
+ * drasticamente o tamanho do arquivo, e consequentemente o tempo de req e res
+ * @param app
+ */
 export async function uploadVideoRoute(app: FastifyInstance) {
   app.register(fastifyMultipart, {
     limits: {

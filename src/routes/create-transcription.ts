@@ -8,6 +8,10 @@ import { openai } from '../lib/openai'
 const paramsSchema = z.object({ videoId: z.string().uuid() })
 const bodySchema = z.object({ prompt: z.string() })
 
+/**
+ * Cria a transcrição dos vídeos que já foram carregados para api (upload)
+ * @param app
+ */
 export async function createTranscriptionRoute(app: FastifyInstance) {
   app.post('/videos/:videoId/transcription', async (req, res) => {
     const { videoId } = paramsSchema.parse(req.params)

@@ -9,3 +9,5 @@
  "[prisma]": {
     "editor.formatOnSave": true
   },
+
+  ## requisoções no arquivo insmonia
